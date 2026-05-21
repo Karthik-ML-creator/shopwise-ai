@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: aurora-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: aurorashop
+      POSTGRES_USER: aurora_admin
+      POSTGRES_PASSWORD: aurora_password_2026
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: aurora-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aurora-backend
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - PORT=8000
+      - DATABASE_URL=postgresql://aurora_admin:aurora_password_2026@postgres:5432/aurorashop
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=super-secret-jwt-key-for-college-major-project-2026
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app/backend
+      - ./ml:/app/ml
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: aurora-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge

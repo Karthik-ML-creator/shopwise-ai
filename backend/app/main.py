@@ -1,0 +1,65 @@
+import uvicorn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from backend.app.config import settings
+from backend.app.database import engine
+from backend.app.models import Base
+from backend.app.routers import auth, products, behavior, recommendations
+
+# Create FastAPI application instance
+app = FastAPI(
+    title="Aurora E-Commerce Recommendations API",
+    description="A high-performance product recommendation API driving personalized retail suggestions using Hybrid SVD models.",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
+
+# Configure CORS Middleware
+# Allows requests from Vite React local servers (ports 3000, 5173) and production containers
+origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+    "*" # Permissive wildcard for ease of local testing / docker setup
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include API Endpoint Routers
+app.include_router(auth.router)
+app.include_router(products.router)
+app.include_router(behavior.router)
+app.include_router(recommendations.router)
+
+# Database table setup on API startup
+@app.on_event("startup")
+def on_startup():
+    print("[INIT] Initializing database mappings...")
+    Base.metadata.create_all(bind=engine)
+    print("[INIT] Database initialized successfully.")
+
+@app.get("/api/health")
+def health_check():
+    """Health check endpoint for Docker / cloud deployments."""
+    return {
+        "status": "healthy",
+        "api_version": "1.0.0",
+        "database": engine.name
+    }
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "main:app",
+        host=settings.HOST,
+        port=settings.PORT,
+        reload=True
+    )
