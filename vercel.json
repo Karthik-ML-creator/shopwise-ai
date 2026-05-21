@@ -1,18 +1,34 @@
 {
-  "buildCommand": "cd frontend && npm run build",
+  "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
   "framework": "vite",
+  "installCommand": "pip install -r backend/requirements.txt && pip install numpy pandas scikit-learn && npm install --prefix frontend",
+  "functions": {
+    "api/index.py": {
+      "memory": 3008,
+      "maxDuration": 60
+    }
+  },
   "env": {
-    "VITE_API_URL": "@vite_api_url"
+    "VITE_API_URL": {
+      "default": ""
+    }
+  },
+  "envVars": {
+    "PYTHONUNBUFFERED": "1"
   },
   "routes": [
     {
       "src": "/api/(.*)",
-      "destination": "https://your-backend-url.com/api/$1"
+      "dest": "api/index.py"
     },
     {
       "src": "/(.*)",
-      "destination": "/index.html"
+      "dest": "frontend/dist/$1"
+    },
+    {
+      "src": "/(.*)(?<!/.*)",
+      "dest": "/frontend/dist/index.html"
     }
   ]
 }
