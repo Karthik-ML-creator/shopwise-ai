@@ -5,7 +5,6 @@
   "installCommand": "pip install -r backend/requirements.txt && pip install numpy pandas scikit-learn && npm install --prefix frontend",
   "functions": {
     "api/index.py": {
-      "memory": 3008,
       "maxDuration": 60
     }
   },
