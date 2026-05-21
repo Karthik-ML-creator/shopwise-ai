@@ -11,11 +11,8 @@
   },
   "env": {
     "VITE_API_URL": {
-      "default": ""
+      "default": "/api"
     }
-  },
-  "envVars": {
-    "PYTHONUNBUFFERED": "1"
   },
   "routes": [
     {
